@@ -5,11 +5,60 @@ app.use(express.json()); // middleware to parse JSON bodies
 const path = require('path');
 const { PlaidApi, Configuration, PlaidEnvironments } = require('plaid');
 
+// database shit
+const { initDB, User } = require('./db'); // Import Sequelize and User model
+initDB(); // Initialize the database connection
+
+/**
+ * This section creates a user. In the future, this won't happen until the user logs in with an account
+ */
+// async function createUser(username, accessToken, userStatus) {
+//     try {
+//         const newUser = await User.create({
+//             username: username,
+//             accessToken: accessToken,
+//             user_status: userStatus,
+//         });
+        
+//         console.log('New user created:', newUser.toJSON());
+//         return newUser;
+//     } catch (error) {
+//         console.error('Error creating user:', error);
+//         throw error;
+//     }
+// };
+function createUser(username, accessToken, userStatus) {
+    return User.create({
+        username: username,
+        access_token: accessToken,
+        user_status: userStatus,
+    }).then(newUser => {
+        console.log('New user created:', newUser.toJSON());
+        return newUser;
+    }).catch(error => {
+        console.error('Error creating user:', error);
+        throw error;
+    });
+}
+// default initial user profile
+// const user = await createUser(process.env.USER_ID, 'accessToken', 'userStatus');
+let user;
+createUser(process.env.USER_ID, 'accessToken', 'userStatus')
+    .then(newUser => {
+        console.log('User created:', newUser.toJSON());
+
+        user = newUser;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+
+
 // Set EJS as the view engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Serve static files from the 'public' directory
+// Serve static files from the 'public' directory (this might be redundant w ejs who cares)
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Route to serve the homepage
@@ -19,8 +68,8 @@ app.get('/', (req, res) => {
 
 // Constants
 const CURR_USER_ID = process.env.USER_ID || 1;
-const FIELD_ACCESS_TOKEN = "accessToken";
-const FIELD_USER_STATUS = "userStatus";
+const FIELD_ACCESS_TOKEN = "access_token";
+const FIELD_USER_STATUS = "user_status";
 
 // Start the server
 const PORT = process.env.PORT || 3000;
@@ -112,9 +161,8 @@ app.post("/server/swap_public_token", async (req, res, next) => {
         const response = await plaidClient.itemPublicTokenExchange({
             public_token: req.body.public_token,
         });
-        // if data is received, updateUserRecord saves the flat file in the user_data directory
+        // if data is received, updateUserRecord saves the flat file in the database
         // we save the access_token, and make a note in our user record that this user has connected to a bank
-        // TODO - DATABASE IMPLEMENTATION: in a real application you should make this call to a database instead
         if (response.data != null && response.data.access_token != null) {
             await updateUserRecord(FIELD_ACCESS_TOKEN, response.data.access_token);
             await updateUserRecord(FIELD_USER_STATUS, "connected");
@@ -126,22 +174,20 @@ app.post("/server/swap_public_token", async (req, res, next) => {
 });
 
 /**
- * *** TEMPORARY METHOD PRIOR TO DATABASE IMPLEMENTATION ***
- * Updates the user record in memory and writes it to a file. In a real
- * application, you'd be writing to a database.
+ * Updates the user record in the databse
  */
-const updateUserRecord = async function (key, val) {
-    const userDataFile = `${USER_FILES_FOLDER}/user_data_${CURR_USER_ID}.json`;
-    userRecord[key] = val;
+const updateUserRecord = async function (key, value) {
     try {
-      const dataToWrite = JSON.stringify(userRecord);
-      await fs.writeFile(userDataFile, dataToWrite, {
-        encoding: "utf8",
-        mode: 0o600,
-      });
-      console.log(`User record ${dataToWrite} written to file.`);
+        if (!user) {
+            throw new Error(`User not found`);
+        }
+
+        user[key] = value;
+
+        console.log('User record updated successfully:', user.toJSON());
     } catch (error) {
-      console.log("Got an error: ", error);
+        console.error('Error updating user record:', error);
+        throw error;
     }
 };
 
@@ -153,7 +199,7 @@ const updateUserRecord = async function (key, val) {
 app.get("/server/get_user_info", async (req, res, next) => {
     try {
         res.json({
-            user_status: userRecord[FIELD_USER_STATUS],
+            user_status: user[FIELD_USER_STATUS],
             user_id: CURR_USER_ID,
         });
     } catch (error) {

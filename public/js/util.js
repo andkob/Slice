@@ -2,7 +2,7 @@ export const callMyServer = async function (endpoint, isPost = false, postData =
   const optionsObj = isPost ? { method: "POST" } : {};
 
   if (isPost && postData !== null) {
-    optionsObj.headers = { "Content-type": "application/json" };
+    optionsObj.headers = { "Content-type": "application/json" }; // ensures that the server can correctly parse the incoming JSON data
     optionsObj.body = JSON.stringify(postData);
   }
 
