@@ -1,16 +1,23 @@
 import { callMyServer, showOutput } from "./util.js";
 
 let linkTokenData;
+let publicTokenToExchange;
+
+export const checkConnectedStatus = async function () {
+    const connectedData = await callMyServer("/server/get_user_info");
+    if (connectedData.user_status === "connected") {
+        showOutput('Plaid is connected to your financial institution');
+    }
+}
 
 const initializeLink = async function () {
-    // calls the endpoint of Plaid's server (that second argument is true, because this is a POST call),\
-    // and then saves that value in linkTokenData
+    // calls the endpoint of Plaid's server and  saves that value in linkTokenData
     linkTokenData = await callMyServer("/initialize/plaid", true);
     console.log('Reveived link token data: ', linkTokenData);
     // displays the data we receive to the blue <div> on our page, so you can see what's going on.
-    // showOutput('Received link token data ${JSON.stringify(linkTokenData)}'); // ?
     if (linkTokenData != null) {
         document.querySelector("#startLink").removeAttribute("disabled");
+        showOutput(`Received link token data ${JSON.stringify(linkTokenData)}`);
     }
 };
 
@@ -31,6 +38,9 @@ const initializeLink = async function () {
  * This is the token that your client receives back from Link. This short-lived token has one purpose, 
  * and that's for your application to exchange it server-side for a more permanent access token that 
  * can be used to contact this bank in the future.
+ * 
+ * For FUTURE reference: Typically you'd use this metadata with your own analytics to help inform you how well your users are
+ * converting and identify any potential problems.
  */
 const startLink = function () {
     if (linkTokenData === undefined) {
@@ -43,7 +53,7 @@ const startLink = function () {
             console.log(`ONSUCCESS: Metadata ${JSON.stringify(metadata)}`);
             showOutput(`I have a public token: ${publicToken} I should exchange this`);
             publicTokenToExchange = publicToken;
-            // document.querySelector("#exchangeToken").removeAttribute("disabled");
+            document.querySelector("#exchangeToken").removeAttribute("disabled"); // *
         },
         onExit: (err, metadata) => {
             console.log(`Exited early. Error: ${JSON.stringify(err)} Metadata: ${JSON.stringify(metadata)}`);
@@ -59,7 +69,8 @@ const startLink = function () {
 // Connect selectors to functions
 const selectorsAndFunctions = {
     "#initializeLink": initializeLink,
-    "#startLink": startLink
+    "#startLink": startLink,
+    "#exchangeToken": exchangeToken
 };
 
 Object.entries(selectorsAndFunctions).forEach(([sel, fun]) => {
@@ -69,3 +80,11 @@ Object.entries(selectorsAndFunctions).forEach(([sel, fun]) => {
       document.querySelector(sel)?.addEventListener("click", fun);
     }
 });
+
+async function exchangeToken() {
+    await callMyServer("/server/swap_public_token", true, {
+        public_token: publicTokenToExchange,
+    });
+    console.log("Done exchanging our token. I'll re-fetch our status.");
+    await checkConnectedStatus();
+}

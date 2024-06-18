@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const app = express();
+app.use(express.json()); // middleware to parse JSON bodies
 const path = require('path');
 const { PlaidApi, Configuration, PlaidEnvironments } = require('plaid');
 
@@ -18,6 +19,8 @@ app.get('/', (req, res) => {
 
 // Constants
 const CURR_USER_ID = process.env.USER_ID || 1;
+const FIELD_ACCESS_TOKEN = "accessToken";
+const FIELD_USER_STATUS = "userStatus";
 
 // Start the server
 const PORT = process.env.PORT || 3000;
@@ -46,8 +49,8 @@ app.get('/callback/plaid', (req, res) => {
  * Sets up the Plaid client (enabling the Plaid SDK)
  * Creates a new plaidClient that will handle talking to the Plaid API.
  * In the headers, we specify the client_id, secret, and API version
- * that you want the client to use. We're also hard-coding the application
- * to talk to the SANDBOX environment.
+ * that the client will use. We're also hard-coding the application
+ * to talk to the SANDBOX environment rn.
  */
 const plaidConfig = new Configuration({
     basePath: PlaidEnvironments['sandbox'],
@@ -93,6 +96,67 @@ app.post("/initialize/plaid", async (req, res, next) => { // previous endpoint n
               "or secret for the environment, or you forgot to copy over your " +
               ".env.template file to.env."
         );
+        next(error);
+    }
+});
+
+/**
+ * Exchanges the public token received from Link for a more permanent access token.
+ * This access token is what will be provided to the Plaid API in order to access the
+ * user's data from the particular financial institution.
+ * Calls /item/public_token/exchange on the server.
+ */
+app.post("/server/swap_public_token", async (req, res, next) => {
+    try {
+        // calls the Plaid endpoint
+        const response = await plaidClient.itemPublicTokenExchange({
+            public_token: req.body.public_token,
+        });
+        // if data is received, updateUserRecord saves the flat file in the user_data directory
+        // we save the access_token, and make a note in our user record that this user has connected to a bank
+        // TODO - DATABASE IMPLEMENTATION: in a real application you should make this call to a database instead
+        if (response.data != null && response.data.access_token != null) {
+            await updateUserRecord(FIELD_ACCESS_TOKEN, response.data.access_token);
+            await updateUserRecord(FIELD_USER_STATUS, "connected");
+        }
+        res.json({ status: "success"});
+    } catch (error) {
+        console.log("Got an error: ", error);
+    }
+});
+
+/**
+ * *** TEMPORARY METHOD PRIOR TO DATABASE IMPLEMENTATION ***
+ * Updates the user record in memory and writes it to a file. In a real
+ * application, you'd be writing to a database.
+ */
+const updateUserRecord = async function (key, val) {
+    const userDataFile = `${USER_FILES_FOLDER}/user_data_${CURR_USER_ID}.json`;
+    userRecord[key] = val;
+    try {
+      const dataToWrite = JSON.stringify(userRecord);
+      await fs.writeFile(userDataFile, dataToWrite, {
+        encoding: "utf8",
+        mode: 0o600,
+      });
+      console.log(`User record ${dataToWrite} written to file.`);
+    } catch (error) {
+      console.log("Got an error: ", error);
+    }
+};
+
+/**
+ * TODO - TEMPORARY IMPLEMENTATION
+ * Fetches some info about our user from our fake "database" and returns it to
+ * the client
+ */
+app.get("/server/get_user_info", async (req, res, next) => {
+    try {
+        res.json({
+            user_status: userRecord[FIELD_USER_STATUS],
+            user_id: CURR_USER_ID,
+        });
+    } catch (error) {
         next(error);
     }
 });
