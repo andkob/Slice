@@ -1,3 +1,6 @@
 A user can't login without a username, but once one is entered there's no going back, which means if a mistake is made, that username
 will be stuck in the database.
 ik the whole login thing is a temporary solution, but think about making a database manager at some point.
+
+If you already have an access_token you no longer need to setup with Plaid anymore, you can just log in right away.
+bc of this u should prolly incorporate a logout function maybe.

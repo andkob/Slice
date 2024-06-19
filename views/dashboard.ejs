@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= username %>'s Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome, <%= username %>!</h1>
+        <button type="button" id="itemInfo">Get Item Info</button>
+    </div>
+    <div
+        class="container"
+        style="background-color: hsl(216, 98%, 82%)"
+        id="status"
+      >
+        You are connected to <%= bankName %>
+    </div>
+    <div
+        class="container"
+        style="background-color: hsl(100, 98%, 82%);"
+        id="output"
+      >
+        Output will go here
+    </div>
+    <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+    <script type="module" src="/js/util.js"></script>
+    <script type="module" src="/js/client.js"></script>
+</body>
+</html>

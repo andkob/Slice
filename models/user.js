@@ -16,6 +16,9 @@ const User = sequelize.define('User', {
     user_status: {
         type: DataTypes.STRING,
     },
+    connected_bank: {
+        type: DataTypes.STRING,
+    }
 });
 
 module.exports = User;

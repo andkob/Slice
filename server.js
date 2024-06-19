@@ -21,11 +21,17 @@ app.get('/', (req, res) => {
     res.render('index');
 });
 
-// Constants
+// Route to serve the logged in page
+app.get('/dashboard', (req, res) => {
+    res.render('dashboard', {
+        username: USER.username, // pass username to ejs template
+        bankName: USER.connected_bank
+    });
+});
+
+// Constants and global variables
 var USER; // global user variable for now
-const CURR_USER_ID = process.env.USER_ID || 1;
-const FIELD_ACCESS_TOKEN = "access_token";
-const FIELD_USER_STATUS = "user_status";
+var CURR_USER_ID = -1;
 
 // Start the server
 const PORT = process.env.PORT || 3000;
@@ -47,7 +53,8 @@ app.post('/create-user', async (req, res) => {
     const { username } = req.body;
     try {
         const user = await findOrCreateUser(username);
-        USER = user;
+        USER = user; // store user globally (TEMPORARY)
+        CURR_USER_ID = user.username;
         res.json(user);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -124,7 +131,7 @@ app.post("/initialize/plaid", async (req, res, next) => { // previous endpoint n
  * Exchanges the public token received from Link for a more permanent access token.
  * This access token is what will be provided to the Plaid API in order to access the
  * user's data from the particular financial institution.
- * Calls /item/public_token/exchange on the server.
+ * Calls /item/public_token/exchange on the Plaid server.
  */
 app.post("/server/swap_public_token", async (req, res, next) => {
     try {
@@ -135,8 +142,9 @@ app.post("/server/swap_public_token", async (req, res, next) => {
         // if data is received, updateUserRecord saves the flat file in the database
         // we save the access_token, and make a note in our user record that this user has connected to a bank
         if (response.data != null && response.data.access_token != null) {
-            await updateUserRecord(FIELD_ACCESS_TOKEN, response.data.access_token);
-            await updateUserRecord(FIELD_USER_STATUS, "connected");
+            await updateUserRecord("access_token", response.data.access_token);
+            await updateUserRecord("user_status", "connected");
+            await updateUserRecord("connected_bank", req.body.connected_bank);
         }
         res.json({ status: "success"});
     } catch (error) {
@@ -152,7 +160,7 @@ app.post("/server/swap_public_token", async (req, res, next) => {
 app.get("/server/get_user_info", async (req, res, next) => {
     try {
         res.json({
-            user_status: USER[FIELD_USER_STATUS],
+            user_status: USER["user_status"],
             user_id: CURR_USER_ID,
         });
     } catch (error) {
@@ -178,3 +186,17 @@ const updateUserRecord = async function (key, value) {
         throw error;
     }
 };
+
+/**
+ * Grabs the results for calling item/get. Useful for debugging purposes.
+ */
+app.get("/server/get_item_info", async (req, res, next) => {
+    try {
+        const itemResponse = await plaidClient.itemGet({
+            access_token: USER["access_token"]
+        });
+        res.json(itemResponse.data);
+    } catch (error) {
+        next(error);
+    }
+});

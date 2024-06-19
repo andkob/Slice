@@ -26,7 +26,8 @@ async function findOrCreateUser(username) {
             where: { username },
             defaults: {
                 access_token: null,
-                user_status: 'not_connected'
+                user_status: 'not_connected',
+                connected_bank: null
             }
         });
         
@@ -34,6 +35,7 @@ async function findOrCreateUser(username) {
             console.log('User already exists: ', user.toJSON());
         } else {
             console.log('New user created:', user.toJSON());
+            user.newlyCreated = true; // temporary flag
         }
 
         return user;
