@@ -7,19 +7,19 @@ let bankName;
 const createUser = async function () {
     const textbox = document.getElementById('usernameBox');
     const input = textbox.value;
-    if (input != "") {
+    if (input !== "") {
         const user = await callMyServer("/create-user", true, { username: input} );
         console.log('Received user data: ', user);
         
-        if (user != null && user.newlyCreated) {
+        if (user !== null && user.user_status === "not_connected") {
             document.querySelector("#initializeLink").removeAttribute("disabled");
             showOutput(`User: ${JSON.stringify(user.username)} has logged in`);
-        } else if (user != null && !user.newlyCreated) {
-            if (checkConnectedStatus()) {
+        } else if (user != null && user.user_status == "connected") {
+            if (await checkConnectedStatus()) {
                 document.querySelector("#continue").removeAttribute("disabled");
             } else {
                 // TODO - this will happen inevitably but i just dont wanna deal w it rn
-                throw new Error(`Login error! User is logged in but not connected to a bank`);
+                throw new Error(`Login error! User is logged in but is not connected to a bank`);
             }
         } else {
             return;
@@ -93,6 +93,7 @@ const startLink = function () {
 
 export const checkConnectedStatus = async function () {
     const connectedData = await callMyServer("/server/get_user_info");
+    console.log(connectedData.user_status);
     if (connectedData.user_status === "connected") {
         showOutput('Plaid is connected to your financial institution');
         return true;

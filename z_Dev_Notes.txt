@@ -4,3 +4,7 @@ ik the whole login thing is a temporary solution, but think about making a datab
 
 If you already have an access_token you no longer need to setup with Plaid anymore, you can just log in right away.
 bc of this u should prolly incorporate a logout function maybe.
+
+
+Q: What's the point of a check user status function when I can access the database directly in the client.
+Seems mad unsecure. It's cuz I have access to the user object but like wtf.

@@ -35,7 +35,6 @@ async function findOrCreateUser(username) {
             console.log('User already exists: ', user.toJSON());
         } else {
             console.log('New user created:', user.toJSON());
-            user.newlyCreated = true; // temporary flag
         }
 
         return user;
