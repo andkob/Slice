@@ -6,53 +6,8 @@ const path = require('path');
 const { PlaidApi, Configuration, PlaidEnvironments } = require('plaid');
 
 // database shit
-const { initDB, User } = require('./db'); // Import Sequelize and User model
+const { User, initDB, findOrCreateUser } = require('./db'); // Import User model and db functions
 initDB(); // Initialize the database connection
-
-/**
- * This section creates a user. In the future, this won't happen until the user logs in with an account
- */
-// async function createUser(username, accessToken, userStatus) {
-//     try {
-//         const newUser = await User.create({
-//             username: username,
-//             accessToken: accessToken,
-//             user_status: userStatus,
-//         });
-        
-//         console.log('New user created:', newUser.toJSON());
-//         return newUser;
-//     } catch (error) {
-//         console.error('Error creating user:', error);
-//         throw error;
-//     }
-// };
-function createUser(username, accessToken, userStatus) {
-    return User.create({
-        username: username,
-        access_token: accessToken,
-        user_status: userStatus,
-    }).then(newUser => {
-        console.log('New user created:', newUser.toJSON());
-        return newUser;
-    }).catch(error => {
-        console.error('Error creating user:', error);
-        throw error;
-    });
-}
-// default initial user profile
-// const user = await createUser(process.env.USER_ID, 'accessToken', 'userStatus');
-let user;
-createUser(process.env.USER_ID, 'accessToken', 'userStatus')
-    .then(newUser => {
-        console.log('User created:', newUser.toJSON());
-
-        user = newUser;
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
-
 
 // Set EJS as the view engine
 app.set('view engine', 'ejs');
@@ -67,6 +22,7 @@ app.get('/', (req, res) => {
 });
 
 // Constants
+var USER; // global user variable for now
 const CURR_USER_ID = process.env.USER_ID || 1;
 const FIELD_ACCESS_TOKEN = "access_token";
 const FIELD_USER_STATUS = "user_status";
@@ -81,6 +37,21 @@ app.listen(PORT, () => {
 app.get('/login/plaid', (req, res) => {
     // Redirect to Plaid Link initialization route
     res.redirect('/initialize/plaid');
+});
+
+/**
+ * TODO - TEMPORARY IMPLEMENTATION
+ * Creates a User or finds a user when the login button is pressed
+ */
+app.post('/create-user', async (req, res) => {
+    const { username } = req.body;
+    try {
+        const user = await findOrCreateUser(username);
+        USER = user;
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // TODO -------------------
@@ -174,24 +145,6 @@ app.post("/server/swap_public_token", async (req, res, next) => {
 });
 
 /**
- * Updates the user record in the databse
- */
-const updateUserRecord = async function (key, value) {
-    try {
-        if (!user) {
-            throw new Error(`User not found`);
-        }
-
-        user[key] = value;
-
-        console.log('User record updated successfully:', user.toJSON());
-    } catch (error) {
-        console.error('Error updating user record:', error);
-        throw error;
-    }
-};
-
-/**
  * TODO - TEMPORARY IMPLEMENTATION
  * Fetches some info about our user from our fake "database" and returns it to
  * the client
@@ -199,10 +152,29 @@ const updateUserRecord = async function (key, value) {
 app.get("/server/get_user_info", async (req, res, next) => {
     try {
         res.json({
-            user_status: user[FIELD_USER_STATUS],
+            user_status: USER[FIELD_USER_STATUS],
             user_id: CURR_USER_ID,
         });
     } catch (error) {
         next(error);
     }
 });
+
+/**
+ * Updates the user record in the databse
+ */
+const updateUserRecord = async function (key, value) {
+    try {
+        if (!USER) {
+            throw new Error(`User not found`);
+        }
+
+        USER[key] = value;
+        await USER.save(); // ensure changes are saved to the database
+
+        console.log('User record updated successfully:', USER.toJSON());
+    } catch (error) {
+        console.error('Error updating user record:', error);
+        throw error;
+    }
+};

@@ -3,10 +3,27 @@ import { callMyServer, showOutput } from "./util.js";
 let linkTokenData;
 let publicTokenToExchange;
 
+const createUser = async function () {
+    const textbox = document.getElementById('usernameBox');
+    const input = textbox.value;
+    if (input != "") {
+        const user = await callMyServer("/create-user", true, { username: input} );
+        console.log('Received user data: ', user);
+        
+        if (user != null) {
+            document.querySelector("#initializeLink").removeAttribute("disabled");
+            document.querySelector("#login").setAttribute("disabled", true);
+            document.querySelector("#usernameBox").remove();
+            showOutput(`User: ${JSON.stringify(user.username)} has logged in`);
+        }
+    }
+}
+
 export const checkConnectedStatus = async function () {
     const connectedData = await callMyServer("/server/get_user_info");
     if (connectedData.user_status === "connected") {
         showOutput('Plaid is connected to your financial institution');
+        document.querySelector("#exchangeToken").setAttribute("disabled", true);
     }
 }
 
@@ -17,6 +34,7 @@ const initializeLink = async function () {
     // displays the data we receive to the blue <div> on our page, so you can see what's going on.
     if (linkTokenData != null) {
         document.querySelector("#startLink").removeAttribute("disabled");
+        document.querySelector("#initializeLink").setAttribute("disabled", true);
         showOutput(`Received link token data ${JSON.stringify(linkTokenData)}`);
     }
 };
@@ -41,6 +59,7 @@ const initializeLink = async function () {
  * 
  * For FUTURE reference: Typically you'd use this metadata with your own analytics to help inform you how well your users are
  * converting and identify any potential problems.
+ * Also rn the metadata shit is mad bugged
  */
 const startLink = function () {
     if (linkTokenData === undefined) {
@@ -54,6 +73,7 @@ const startLink = function () {
             showOutput(`I have a public token: ${publicToken} I should exchange this`);
             publicTokenToExchange = publicToken;
             document.querySelector("#exchangeToken").removeAttribute("disabled"); // *
+            document.querySelector("#startLink").setAttribute("disabled", true);
         },
         onExit: (err, metadata) => {
             console.log(`Exited early. Error: ${JSON.stringify(err)} Metadata: ${JSON.stringify(metadata)}`);
@@ -68,6 +88,7 @@ const startLink = function () {
 
 // Connect selectors to functions
 const selectorsAndFunctions = {
+    "#login": createUser,
     "#initializeLink": initializeLink,
     "#startLink": startLink,
     "#exchangeToken": exchangeToken

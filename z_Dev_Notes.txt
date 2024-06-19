@@ -1,11 +1,3 @@
-So leaving off, initialization works, plaid launches and successfully returns a public token.
-Exchanging the public token now works successfully.
-
-In this iteration, an SQLite database was loosely implemented.
-I say loosely because I am not sure if there are things I left out, or if there is still remaining code from the "temporary database".
-
-Right now if you want to run this, you have to delete the database.sqlite file, run the server, shut the server down because it ran into an error,
-a blank database file will then exist. Then when you start the server everything should work.
-If you restart the server and run it again, it will fail again due to the user already existing.
-
-Not sure how to handle this yet because we have no log in or anything yet, so maybe just fix it so it can run as is right now.
+A user can't login without a username, but once one is entered there's no going back, which means if a mistake is made, that username
+will be stuck in the database.
+ik the whole login thing is a temporary solution, but think about making a database manager at some point.

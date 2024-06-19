@@ -32,3 +32,21 @@ button:disabled {
     cursor: not-allowed; /* Optional: Change cursor style */
     opacity: 0.6; /* Optional: Reduce opacity for visual indication */
 }
+
+.styled-textbox {
+    width: 100px;
+    padding: 10px;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.styled-textbox:focus {
+    border-color: #007BFF;
+}
+
+.styled-textbox::placeholder {
+    color: #aaa;
+}

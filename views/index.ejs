@@ -9,8 +9,11 @@
 <body>
     <div class="container">
         <h1>Welcome to Plaid Finance Assistance</h1>
+        <p>Login here</p>
+        <input type="text" id="usernameBox" class="styled-textbox" placeholder="Username">
+        <button type="button" id="login">Login</button>
         <p>Click the button below to initialize Plaid Link:</p>
-        <button type="button" id="initializeLink">Initialize Link</button>
+        <button type="button" id="initializeLink" disabled>Initialize Link</button>
         <p>Now, click this button to launch Plaid Link</p>
         <button type="button" id="startLink" disabled>Start Link</button>
         <p>Click here to exchange your public token</p>
@@ -21,7 +24,7 @@
         style="background-color: hsl(216, 98%, 82%)"
         id="output"
       >
-        Results from Link initialization will go here
+        Current status will be displayed here
     </div>
     <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
     <script type="module" src="/js/util.js"></script>
