@@ -159,6 +159,21 @@ const getItemInfo = async function () {
     showOutput(JSON.stringify(itemData));
 }
 
+/**
+ * The value of accounts is an array, because each Item can be connected
+ * to one or more accounts.
+ * Each account object will contain information like the name of the account,
+ * the type of account, and the account_id.
+ * (This account_id is not the same as the actual account number
+ * -- it's an internal identifier that Plaid uses to reference this particular account.)
+ * You'll also see that this call returns information about the Item as well.
+ * -- This is pretty common
+ */
+const getAccountsInfo = async function () {
+    const accountsData = await callMyServer('/server/get_accounts_info');
+    showOutput(JSON.stringify(accountsData));
+}
+
 // Function to replace body content with new HTML
 async function replaceBodyContent(html) {
     document.body.innerHTML = html;
@@ -173,7 +188,8 @@ function initializeEventListeners() {
         "#startLink": startLink,
         "#exchangeToken": exchangeToken,
         "#continue": continueToDashboard,
-        "#itemInfo": getItemInfo
+        "#itemInfo": getItemInfo,
+        "#accountsInfo": getAccountsInfo
     };
 
     // Loop through selectors and add event listeners

@@ -8,3 +8,6 @@ bc of this u should prolly incorporate a logout function maybe.
 
 Q: What's the point of a check user status function when I can access the database directly in the client.
 Seems mad unsecure. It's cuz I have access to the user object but like wtf.
+
+also when exchanging a token the update prints to the console 3 times jsyk. check it out.
+And the title doesn't change too.

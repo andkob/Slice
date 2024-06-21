@@ -200,3 +200,17 @@ app.get("/server/get_item_info", async (req, res, next) => {
         next(error);
     }
 });
+
+/**
+ * Grabs the results for calling accounts/get. Useful for debugging purposes.
+ */
+app.get("/server/get_accounts_info", async (req, res, next) => {
+    try {
+        const accountResult = await plaidClient.accountsGet({
+            access_token: USER["access_token"],
+        });
+        res.json(accountResult.data);
+    } catch(error) {
+        next(error);
+    }
+});
