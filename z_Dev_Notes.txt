@@ -1,13 +1,21 @@
+1.
 A user can't login without a username, but once one is entered there's no going back, which means if a mistake is made, that username
 will be stuck in the database.
 ik the whole login thing is a temporary solution, but think about making a database manager at some point.
 
+2.
 If you already have an access_token you no longer need to setup with Plaid anymore, you can just log in right away.
 bc of this u should prolly incorporate a logout function maybe.
 
-
+3.
 Q: What's the point of a check user status function when I can access the database directly in the client.
 Seems mad unsecure. It's cuz I have access to the user object but like wtf.
 
-also when exchanging a token the update prints to the console 3 times jsyk. check it out.
-And the title doesn't change too.
+4.
+Title doesn't change when ur in the dashboard.
+
+More Recent Notes:
+1. Yeah thats fine for now prolly ill do that if im bored. rn just deleting the database is fine for cleaning up xD
+2. Again maybe later
+3. Definitely check this out first thing
+4. bruh

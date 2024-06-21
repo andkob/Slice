@@ -1,7 +1,6 @@
 import { callMyServer, showOutput } from "./util.js";
 
 let linkTokenData;
-let publicTokenToExchange;
 let bankName;
 
 const createUser = async function () {
@@ -12,8 +11,8 @@ const createUser = async function () {
         console.log('Received user data: ', user);
         
         if (user !== null && user.user_status === "not_connected") {
-            document.querySelector("#initializeLink").removeAttribute("disabled");
             showOutput(`User: ${JSON.stringify(user.username)} has logged in`);
+            document.querySelector("#startLink").removeAttribute("disabled");
         } else if (user != null && user.user_status == "connected") {
             if (await checkConnectedStatus()) {
                 document.querySelector("#continue").removeAttribute("disabled");
@@ -35,8 +34,6 @@ const initializeLink = async function () {
     console.log('Reveived link token data: ', linkTokenData);
     // displays the data we receive to the blue <div> on our page, so you can see what's going on.
     if (linkTokenData != null) {
-        document.querySelector("#startLink").removeAttribute("disabled");
-        document.querySelector("#initializeLink").setAttribute("disabled", true);
         showOutput(`Received link token data ${JSON.stringify(linkTokenData)}`);
     }
 };
@@ -63,7 +60,9 @@ const initializeLink = async function () {
  * converting and identify any potential problems.
  * Also rn the metadata shit is mad bugged
  */
-const startLink = function () {
+const startLink = async function () {
+    await initializeLink(); // initialize Plaid Link here
+
     if (linkTokenData === undefined) {
         return;
     }
@@ -72,13 +71,10 @@ const startLink = function () {
         token: linkTokenData.link_token,
         onSuccess: async (publicToken, metadata) => {
             console.log(`ONSUCCESS: Metadata ${JSON.stringify(metadata)}`);
-            showOutput(`I have a public token: ${publicToken} I should exchange this`);
-            publicTokenToExchange = publicToken;
-            document.querySelector("#exchangeToken").removeAttribute("disabled"); // *
-            document.querySelector("#startLink").setAttribute("disabled", true);
-
-            // Save bank name to later send it back to the server
+            // Save bank name to later send it back to the server (in exchangeToken)
             bankName = metadata.institution.name;
+            await exchangeToken(publicToken); // exchange public token here
+            document.querySelector("#startLink").setAttribute("disabled", true);
         },
         onExit: (err, metadata) => {
             console.log(`Exited early. Error: ${JSON.stringify(err)} Metadata: ${JSON.stringify(metadata)}`);
@@ -124,16 +120,15 @@ export const checkConnectedStatus = async function () {
  * The whole point of doing all this is to be able to use endpoints that belong to a
  * specific Plaid product.
  */
-async function exchangeToken() {
+async function exchangeToken(token) {
     await callMyServer("/server/swap_public_token", true, {
-        public_token: publicTokenToExchange,
+        public_token: token,
         connected_bank: bankName,
     });
     console.log("Done exchanging our token. I'll re-fetch our status.");
     const success = await checkConnectedStatus();
 
     if (success) {
-        document.querySelector("#exchangeToken").setAttribute("disabled", true);
         document.querySelector("#continue").removeAttribute("disabled");
     }
 }
@@ -180,16 +175,49 @@ async function replaceBodyContent(html) {
     initializeEventListeners(); // Reapply event listeners after updating the DOM
 }
 
+/**
+ * Returns all auth data for User's accounts
+ */
+const getAuthData = async function () {
+    const authData = await callMyServer('/server/fetch_auth_data');
+    return authData;
+}
+
+/**
+ * Gets all account and routing numbers for the User
+ */
+const getAccountNumbers = async function () {
+    try {
+        const authData = await getAuthData();
+        
+        if (!authData || !authData.numbers || !authData.numbers.ach) {
+            throw new Error('Invalid authentication data');
+        }
+
+        const { ach } = authData.numbers; // just learned this destructuring shit look at that huh
+        // iterates over each element in the ach array. For each element, it destructures account and
+        // -- routing and gets the corresponding name from authData.accounts using the current index.
+        const accountDataString = ach.map(({ account, routing }, index) => {
+            const { name } = authData.accounts[index];
+            return `${name}: {Account Number: ${account} | Routing Number: ${routing}}`;
+        }).join(' >>> ');
+
+        showOutput(accountDataString);
+    } catch (error) {
+        console.error('Error fetching account numbers:', error);
+        showOutput('An error occurred while fetching account numbers. Please try again.');
+    }
+}
+
 // Function to initialize event listeners
 function initializeEventListeners() {
     const selectorsAndFunctions = {
         "#login": createUser,
-        "#initializeLink": initializeLink,
         "#startLink": startLink,
-        "#exchangeToken": exchangeToken,
         "#continue": continueToDashboard,
         "#itemInfo": getItemInfo,
-        "#accountsInfo": getAccountsInfo
+        "#accountsInfo": getAccountsInfo,
+        "#accountNumbers": getAccountNumbers
     };
 
     // Loop through selectors and add event listeners

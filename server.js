@@ -214,3 +214,18 @@ app.get("/server/get_accounts_info", async (req, res, next) => {
         next(error);
     }
 });
+
+/**
+ * Fetches verified account and routing numbers for user's accounts
+ * (checking/saving) by calling the /auth/get endpoint on Plaid's server.
+ */
+app.get("/server/fetch_auth_data", async (req, res, next) => {
+    try {
+        const authData = await plaidClient.authGet({
+            access_token: USER["access_token"],
+        });
+        res.json(authData.data);
+    } catch (error) {
+        next(error);
+    }
+});
