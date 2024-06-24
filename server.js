@@ -21,7 +21,7 @@ app.get('/', (req, res) => {
     res.render('index');
 });
 
-// Route to serve the logged in page
+// Route to serve the dashboard page
 app.get('/dashboard', (req, res) => {
     res.render('dashboard', {
         username: USER.username, // pass username to ejs template
@@ -61,6 +61,13 @@ app.post('/create-user', async (req, res) => {
     }
 });
 
+app.post('/server/user/logout', async (req, res) => {
+    USER = null; // clear global user variable
+    res.status(200);
+    res.json({ message: 'Logout successful' });
+});
+
+// res.status(200).send('ok'); // idk
 // TODO -------------------
 // Example route to handle Plaid callback (replace with actual Plaid SDK integration)
 app.get('/callback/plaid', (req, res) => {
@@ -109,7 +116,7 @@ app.post("/initialize/plaid", async (req, res, next) => { // previous endpoint n
             }, // all we provide rn is user id
             client_name: "Finance Assistant Start",
             language: "en",
-            products: ["auth"], // only using this product rn
+            products: ["auth", "transactions"], // list of products being used
             country_codes: ["US"],
             // webhook: "https://www.example.com/webhook",
         };
@@ -225,6 +232,48 @@ app.get("/server/fetch_auth_data", async (req, res, next) => {
             access_token: USER["access_token"],
         });
         res.json(authData.data);
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * Fetches transaction data by calling /transactions/sync
+ * This endpoint is called instead of /transactions/get because it
+ * can Get transaction data or incremental transaction updates,
+ * allowing for ease of use and more functionality later.
+ */
+app.get("/server/fetch_transactions", async (req, res, next) => {
+    try {
+        const transactionData = await plaidClient.transactionsSync({
+            access_token: USER["access_token"]
+        });
+        res.json(transactionData.data);
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * Fetches REAL TIME account balances for each of the item's accounts.
+ * 
+ * While other endpoints, such as /accounts/get, return a balance object,
+ * only /accounts/balance/get forces the available and current balance fields
+ * to be refreshed rather than cached. This endpoint can be used for existing
+ * Items that were added via any of Plaid’s other products. This endpoint can
+ * be used as long as Link has been initialized with any other product, balance
+ * itself is not a product that can be used to initialize Link. As this endpoint
+ * triggers a synchronous request for fresh data, latency may be higher than for
+ * other Plaid endpoints (typically less than 10 seconds, but occasionally up to
+ * 30 seconds or more); if you encounter errors, you may find it necessary to
+ * adjust your timeout period when making requests.
+ */
+app.get('/server/get_realtime_balance', async (req, res, next) => {
+    try {
+        const balanceData = await plaidClient.accountsBalanceGet({
+            access_token: USER["access_token"]
+        });
+        res.json(balanceData.data);
     } catch (error) {
         next(error);
     }

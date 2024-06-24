@@ -21,12 +21,44 @@ const createUser = async function () {
                 throw new Error(`Login error! User is logged in but is not connected to a bank`);
             }
         } else {
-            return;
+            showOutput('Please log in to use Slice');
         }
         document.querySelector("#login").setAttribute("disabled", true);
         document.querySelector("#usernameBox").remove();
     }
 }
+
+/**
+ * Performs user logout and switches to the homepage
+ */
+const logout = async function () {
+    try {
+        // Perform logout request
+        const logoutResponse = await callMyServer('/server/user/logout', true);
+        
+        // // Check if logout was successful
+        // if (!logoutResponse.ok) {
+        //     throw new Error(`Logout request failed with status ${logoutResponse.status}`);
+        // }
+        
+        console.log('User logged out successfully');
+        
+        // Fetch the homepage HTML
+        const response = await fetch('/');
+        // Check if fetching homepage was successful
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        // Replace the entire body with homepage HTML
+        const html = await response.text();
+        replaceBodyContent(html);
+        showOutput("Log out successful")
+    } catch (error) {
+        console.error('Error during logout and switching page:', error);
+        showOutput('An error occurred during logout. Please try again.'); // Display error message to user
+    }
+};
 
 const initializeLink = async function () {
     // calls the endpoint of Plaid's server and  saves that value in linkTokenData
@@ -121,6 +153,7 @@ export const checkConnectedStatus = async function () {
  * specific Plaid product.
  */
 async function exchangeToken(token) {
+    // just a note I pass the bank name to the server during this proccess just cuz its the most convenient
     await callMyServer("/server/swap_public_token", true, {
         public_token: token,
         connected_bank: bankName,
@@ -133,17 +166,26 @@ async function exchangeToken(token) {
     }
 }
 
-async function continueToDashboard() {
+/**
+ * By default will switch to the dashboard page
+ */
+async function switchPage() {
     try {
-        const response = await fetch('/dashboard', { bankName });
+        const response = await fetch('/dashboard');
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const html = await response.text();
         replaceBodyContent(html); // Replace entire body with dashboard HTML
     } catch (error) {
-        console.error('Error fetching dashboard:', error);
+        console.error(`Error fetching dashboard:`, error);
     }
+}
+
+// Function to replace body content with new HTML
+async function replaceBodyContent(html) {
+    document.body.innerHTML = html;
+    initializeEventListeners(); // Reapply event listeners after updating the DOM
 }
 
 /**
@@ -167,12 +209,6 @@ const getItemInfo = async function () {
 const getAccountsInfo = async function () {
     const accountsData = await callMyServer('/server/get_accounts_info');
     showOutput(JSON.stringify(accountsData));
-}
-
-// Function to replace body content with new HTML
-async function replaceBodyContent(html) {
-    document.body.innerHTML = html;
-    initializeEventListeners(); // Reapply event listeners after updating the DOM
 }
 
 /**
@@ -209,15 +245,118 @@ const getAccountNumbers = async function () {
     }
 }
 
+/**
+ * Fetches transactions and shows the formatted output.
+ * Here is example data from one transaction for reference:
+ * 
+account_id: "Z1dPoV583vUB4odnqwRvuNwQjX9XMafea7r3L"
+account_owner: null
+amount: 5.4
+authorized_date: "2024-06-22"
+authorized_datetime: null
+category: (2) ['Travel', 'Taxi']
+category_id: "22016000"
+check_number: null
+counterparties: [{…}]
+date: "2024-06-23"
+datetime: null
+iso_currency_code: "USD"
+location: {address: null, city: null, country: null, lat: null, lon: null, …}
+logo_url: "https://plaid-merchant-logos.plaid.com/uber_1060.png"
+merchant_entity_id: "eyg8o776k0QmNgVpAmaQj4WgzW9Qzo6O51gdd"
+merchant_name: "Uber"
+name: "Uber 063015 SF**POOL**"
+payment_channel: "online"
+payment_meta: {by_order_of: null, payee: null, payer: null, payment_method: null, payment_processor: null, …}
+pending: false
+pending_transaction_id: null
+personal_finance_category: {confidence_level: 'VERY_HIGH', detailed: 'TRANSPORTATION_TAXIS_AND_RIDE_SHARES', primary: 'TRANSPORTATION'}
+personal_finance_category_icon_url: "https://plaid-category-icons.plaid.com/PFC_TRANSPORTATION.png"
+transaction_code: null
+transaction_id: "Q49rjo5XnEUVqjLnp8aKcM7ylMeBZbiwlg53D"
+transaction_type: "special"
+unofficial_currency_code: null
+website: "uber.com"
+ */
+const fetchTransactions = async function () {
+    try {
+        const transactionData = await callMyServer('/server/fetch_transactions');
+        // Format transaction data
+        const transactions = transactionData.added;
+        const accounts = transactionData.accounts;
+
+        // Link account IDs to their names
+        const accountMap = new Map();
+        for (let i = 0; i < accounts.length; i++) {
+            accountMap.set(accounts[i].account_id, accounts[i].name);
+        }
+
+        let transactionDataString = "";
+
+        transactions.forEach((transaction, index) => {
+            const {
+                account_id,
+                merchant_name,
+                amount,
+                iso_currency_code,
+                date,
+                category,
+            } = transaction;
+
+            const formattedCategory = category ? category.join(', ') : 'N/A';
+            // const formattedLocation = location ? `${location.city || ''}, ${location.region || ''}`.trim() : 'N/A';
+            let accountName = accountMap.get(account_id);
+
+            transactionDataString += `
+                Transaction ${index + 1}:
+                - ${accountName}
+                - ${merchant_name || 'N/A'}
+                - Amount: ${amount} ${iso_currency_code}
+                - Date: ${date}
+                - Category: ${formattedCategory}
+                || `;
+        });
+
+        showOutput(transactionDataString);
+    } catch (error) {
+        console.error('Error fetching transaction data: ', error);
+        showOutput('An error occurred while fetching transaction data. Please try again.')
+    }
+}
+
+/**
+ * balanceData is the same data one would receive by calling accounts/get_info,
+ * but this is real time. I don't know if I'll need this but its here for now.
+ */
+const fetchRealtimeBalances = async function () {
+    try {
+        const balanceData = await callMyServer('/server/get_realtime_balance');
+        const accounts = balanceData.accounts;
+
+        // Use map and join to create the balance string
+        const balanceString = accounts.map(({ name, balances }) => 
+            `${name}: $${balances.available || '0.00'}`
+        ).join(' || ');
+
+        showOutput(balanceString);
+    } catch (error) {
+        console.error('Error fetching balance data: ', error);
+        showOutput('An error occurred while fetching balance data. Please try again.')
+    }
+}
+
 // Function to initialize event listeners
 function initializeEventListeners() {
     const selectorsAndFunctions = {
         "#login": createUser,
         "#startLink": startLink,
-        "#continue": continueToDashboard,
+        "#continue": switchPage,
         "#itemInfo": getItemInfo,
         "#accountsInfo": getAccountsInfo,
-        "#accountNumbers": getAccountNumbers
+        "#accountNumbers": getAccountNumbers,
+        "#transactionData": fetchTransactions,
+        "#realtimeBalance": fetchRealtimeBalances,
+        "#logout": logout
     };
 
     // Loop through selectors and add event listeners

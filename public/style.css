@@ -24,8 +24,16 @@ button {
     cursor: pointer;
 }
 
+
 button:hover {
     background-color: #45a049;
+}
+
+.logout-button {
+    background-color: #ad1a1a;
+}
+.logout-button:hover {
+    background-color: #821313;
 }
 
 button:disabled {
