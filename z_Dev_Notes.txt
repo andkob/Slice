@@ -1,6 +1,12 @@
-I added a couple things from the transaction product. I think it's time to start get a real design going.
-There's a lot I can do with what I've build so far, I just have no real way of displaying things or anything.
-That is definitely the next order of business (just kinda sucks lowkey).
+-- Commit Notes --
+
+As unmotivated as I was to start designing this webpage, damn does it look sexy now. Obviously I'm not gonna keep it this way, this just
+gives us the change to implement more complex features much easier, as they actually have a place to go now.
+Also it was lowkey more fun than I thought it would be.
+Next thing I want to do is fix how transactions are shown -> Either 1. on a different page, or 2. On separate cards in the output container.
+---> I actually want to do part with this output container thing as soon as we can bc after this update its now the most pussy ass part
+of the project rn.
+
 
 
 -- Stuff --
@@ -14,6 +20,6 @@ Rn deleting the database when neccessary is fine.
 2.
 Title doesn't change when ur in the dashboard.
 
-More Recent Notes:
+Notes on the notes:
 1. Yeah thats fine for now prolly ill do that if im bored. rn just deleting the database is fine for cleaning up xD
 2. bruh

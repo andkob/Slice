@@ -7,31 +7,51 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Welcome, <%= username %>!</h1>
-        <button type="button" id="itemInfo">Get Item Info</button>
-        <button type="button" id="accountsInfo">Get Info About my Account(s)</button>
-        <p>Actual Useful Stuff:</p>
-        <button type="button" id="accountNumbers">Get Account/Routing Numbers</button>
-        <button type="button" id="realtimeBalance">Get Real Time Account Balances</button>
-        <button type="button" id="transactionData">Get Transactions</button>
-        <p>Log out here</p>
-        <button class="button logout-button" type="button" id="logout">Log out</button>
+    <div class="container header-container">
+        <div class="left-section">
+            <h1>Welcome, <%= username %>!</h1>
+            <button class="button logout-button" type="button" id="logout">Log out</button>
+        </div>
+        <div class="right-section">
+            <div class="card" id="account-cards">
+                <h3>Connected Accounts:</h3>
+                <!-- Account cards will be dynamically added here -->
+            </div>
+            <div class="status">You are connected to <%= bankName %></div>
+        </div>
     </div>
-    <div
-        class="container"
-        style="background-color: hsl(216, 98%, 82%)"
-        id="status"
-      >
-        You are connected to <%= bankName %>
+
+    <div class="content container">
+        <div class="grid">
+            <div class="card" id="balances">
+                <h2>Real Time Account Balances</h2>
+                <button class="button" type="button" id="realtimeBalance">Get Balances</button>
+                <div id="balanceOutput"></div>
+            </div>
+            <div class="card" id="transactions">
+                <h2>Recent Transactions</h2>
+                <button class="button" type="button" id="transactionData">Get Transactions</button>
+                <div id="transactionOutput"></div>
+            </div>
+            <div class="card" id="budget">
+                <h2>Budget Overview</h2>
+                <button class="button" type="button" id="budgetInfo">Go to Budget View</button>
+                <div id="budgetOutput"></div>
+            </div>
+            <div class="card" id="accountInfo">
+                <h2>Account Information</h2>
+                <button class="button" type="button" id="accountNumbers">Show Account/Routing Numbers</button>
+            </div>
+        </div>
     </div>
-    <div
-        class="container"
-        style="background-color: hsl(100, 98%, 82%);"
-        id="output"
-      >
-        Output will go here
+
+    <div class="footer container">
+        <div class="card" id="output">
+            <h2>Output</h2>
+            <div id="outputContent">Output will go here</div>
+        </div>
     </div>
+
     <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
     <script type="module" src="/js/util.js"></script>
     <script type="module" src="/js/client.js"></script>

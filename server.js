@@ -15,6 +15,8 @@ app.set('views', path.join(__dirname, 'views'));
 
 // Serve static files from the 'public' directory (this might be redundant w ejs who cares)
 app.use(express.static(path.join(__dirname, 'public')));
+// also images
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 // Route to serve the homepage
 app.get('/', (req, res) => {

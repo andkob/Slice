@@ -167,16 +167,20 @@ async function exchangeToken(token) {
 }
 
 /**
- * By default will switch to the dashboard page
+ * Will switch to the dashboard page
  */
-async function switchPage() {
+async function switchToDashboard() {
     try {
         const response = await fetch('/dashboard');
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
+        
         const html = await response.text();
         replaceBodyContent(html); // Replace entire body with dashboard HTML
+
+        // show connected accounts
+        showConnectedAccounts();
     } catch (error) {
         console.error(`Error fetching dashboard:`, error);
     }
@@ -206,9 +210,45 @@ const getItemInfo = async function () {
  * You'll also see that this call returns information about the Item as well.
  * -- This is pretty common
  */
-const getAccountsInfo = async function () {
-    const accountsData = await callMyServer('/server/get_accounts_info');
-    showOutput(JSON.stringify(accountsData));
+// const getAccountsInfo = async function () {
+//     const accountsData = await callMyServer('/server/get_accounts_info');
+//     return accountsData;
+// } dont think I need this one
+
+/**
+ * This function will run when the user enters the dashboard
+ */
+const showConnectedAccounts = async function () {
+    const data = await getAuthData();
+    const accounts = data.accounts;
+
+    // Select the container where account cards will be added
+    const accountCardsContainer = document.querySelector('#account-cards');
+
+    // Iterate through each account and create a card
+    accounts.forEach(account => {
+        const card = document.createElement('div');
+        card.classList.add('account-card');
+
+        let iconSrc = '';
+        if (account.subtype === 'checking') {
+            iconSrc = '/images/checking-icon.jpg';
+        } else if (account.subtype === 'savings') {
+            iconSrc = '/images/savings-icon.jpg';
+        } else {
+            iconSrc = '/images/default-icon.png';
+        }
+        
+        card.innerHTML = `
+            <div class="account-info">
+                <img src="${iconSrc}" class="account-icon" alt="${account.subtype} icon">
+                <div class="account-details">
+                    <p>${account.name}</p>
+                </div>
+            </div>
+        `;
+        accountCardsContainer.appendChild(card);
+    });
 }
 
 /**
@@ -350,9 +390,8 @@ function initializeEventListeners() {
     const selectorsAndFunctions = {
         "#login": createUser,
         "#startLink": startLink,
-        "#continue": switchPage,
+        "#continue": switchToDashboard,
         "#itemInfo": getItemInfo,
-        "#accountsInfo": getAccountsInfo,
         "#accountNumbers": getAccountNumbers,
         "#transactionData": fetchTransactions,
         "#realtimeBalance": fetchRealtimeBalances,
