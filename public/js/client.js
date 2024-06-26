@@ -186,6 +186,29 @@ async function switchToDashboard() {
     }
 }
 
+/**
+ * Will switch to the transactions page
+ */
+async function switchToTransactions() {
+    try {
+        const response = await fetch('/transactions');
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const html = await response.text();
+        replaceBodyContent(html);
+
+        // throw this here for now cuz idk what else to put there atm
+        showConnectedAccounts();
+
+        // Load transactions here
+        showTransactions();
+    } catch (error) {
+        console.error(`Error fetching transactions page:`, error);
+    }
+}
+
 // Function to replace body content with new HTML
 async function replaceBodyContent(html) {
     document.body.innerHTML = html;
@@ -365,6 +388,70 @@ const fetchTransactions = async function () {
 }
 
 /**
+ * This function will run when switching the the transactions page.
+ * Each transaction and its data is placed in its own card and shown on the page.
+ */
+const showTransactions = async function () {
+    try {
+        const transactionData = await callMyServer('/server/fetch_transactions');
+        // Format transaction data
+        const transactions = transactionData.added;
+        const accounts = transactionData.accounts;
+
+        // Link account IDs to their names
+        const accountMap = new Map();
+        for (let i = 0; i < accounts.length; i++) {
+            accountMap.set(accounts[i].account_id, accounts[i].name);
+        }
+
+        const transactionsContainer = document.querySelector("#transactions-container");
+
+        transactions.forEach((transaction, index) => {
+            let transactionDataString = "";
+
+            const {
+                account_id,
+                merchant_name,
+                amount,
+                iso_currency_code,
+                date,
+                category,
+            } = transaction;
+
+            const formattedCategory = category ? category.join(', ') : 'N/A';
+            // const formattedLocation = location ? `${location.city || ''}, ${location.region || ''}`.trim() : 'N/A';
+            let accountName = accountMap.get(account_id);
+
+            transactionDataString = `
+                Transaction ${index + 1}:
+                - ${accountName}
+                - ${merchant_name || 'N/A'}
+                - Amount: $${amount} ${iso_currency_code}
+                - Date: ${date}
+                - Category: ${formattedCategory}
+                `;
+
+            const card = document.createElement('div');
+            card.classList.add('transaction-card');
+
+            // Determine the class for the amount based on its value
+            const amountClass = amount < 0 ? 'positive' : 'negative';
+
+            card.innerHTML = `
+            <div class="transaction-info">
+                <div class="account-details">
+                    <p class="transaction-amount ${amountClass}">${transactionDataString}</p>
+                </div>
+            </div>
+            `;
+            transactionsContainer.appendChild(card);
+        });
+    } catch (error) {
+        console.error('Error fetching transaction data: ', error);
+    }
+}
+
+/**
  * balanceData is the same data one would receive by calling accounts/get_info,
  * but this is real time. I don't know if I'll need this but its here for now.
  */
@@ -391,6 +478,7 @@ function initializeEventListeners() {
         "#login": createUser,
         "#startLink": startLink,
         "#continue": switchToDashboard,
+        "#transactionsPageButton": switchToTransactions,
         "#itemInfo": getItemInfo,
         "#accountNumbers": getAccountNumbers,
         "#transactionData": fetchTransactions,

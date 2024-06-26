@@ -31,6 +31,11 @@ app.get('/dashboard', (req, res) => {
     });
 });
 
+// Route to serve the transactions page
+app.get('/transactions', (req, res) => {
+    res.render('transactions');
+});
+
 // Constants and global variables
 var USER; // global user variable for now
 var CURR_USER_ID = -1;
