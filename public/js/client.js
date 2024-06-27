@@ -1,4 +1,5 @@
 import { callMyServer, showOutput } from "./util.js";
+import { showSpendingSummary } from "./spendingSummary.js";
 
 let linkTokenData;
 let bankName;
@@ -181,6 +182,10 @@ async function switchToDashboard() {
 
         // show connected accounts
         showConnectedAccounts();
+        // show transactions in main container | data is used for summary so we must await completion
+        const data = await showTransactions("#main-container", 10);
+        // show spending summary
+        showSpendingSummary(data);
     } catch (error) {
         console.error(`Error fetching dashboard:`, error);
     }
@@ -199,11 +204,11 @@ async function switchToTransactions() {
         const html = await response.text();
         replaceBodyContent(html);
 
-        // throw this here for now cuz idk what else to put there atm
+        // show connected accounts
         showConnectedAccounts();
 
         // Load transactions here
-        showTransactions();
+        showTransactions("#transactions-container");
     } catch (error) {
         console.error(`Error fetching transactions page:`, error);
     }
@@ -390,8 +395,14 @@ const fetchTransactions = async function () {
 /**
  * This function will run when switching the the transactions page.
  * Each transaction and its data is placed in its own card and shown on the page.
+ * NOTE: Will only display max 100 transactions, unless more are requested by the server.
+ * @param {number} numTransactions default=100. If specified, only this amount of 
+ * transactions will be shown
+ * @param {string} containerID The ID of the container to display the transactions in
+ * 
+ * @returns Transaction data received from the server (see use in switchToDashboard)
  */
-const showTransactions = async function () {
+const showTransactions = async function (containerID, numTransactions = 100) {
     try {
         const transactionData = await callMyServer('/server/fetch_transactions');
         // Format transaction data
@@ -404,11 +415,11 @@ const showTransactions = async function () {
             accountMap.set(accounts[i].account_id, accounts[i].name);
         }
 
-        const transactionsContainer = document.querySelector("#transactions-container");
+        const transactionsContainer = document.querySelector(containerID);
 
-        transactions.forEach((transaction, index) => {
+        for (let i = 0; i < Math.min(transactions.length, numTransactions); i++) {
             let transactionDataString = "";
-
+            const transaction = transactions[i];
             const {
                 account_id,
                 merchant_name,
@@ -419,11 +430,10 @@ const showTransactions = async function () {
             } = transaction;
 
             const formattedCategory = category ? category.join(', ') : 'N/A';
-            // const formattedLocation = location ? `${location.city || ''}, ${location.region || ''}`.trim() : 'N/A';
             let accountName = accountMap.get(account_id);
 
             transactionDataString = `
-                Transaction ${index + 1}:
+                Transaction ${i + 1}:
                 - ${accountName}
                 - ${merchant_name || 'N/A'}
                 - Amount: $${amount} ${iso_currency_code}
@@ -445,7 +455,9 @@ const showTransactions = async function () {
             </div>
             `;
             transactionsContainer.appendChild(card);
-        });
+        }
+
+        return transactionData;
     } catch (error) {
         console.error('Error fetching transaction data: ', error);
     }
@@ -479,6 +491,7 @@ function initializeEventListeners() {
         "#startLink": startLink,
         "#continue": switchToDashboard,
         "#transactionsPageButton": switchToTransactions,
+        "#backToDashboard": switchToDashboard,
         "#itemInfo": getItemInfo,
         "#accountNumbers": getAccountNumbers,
         "#transactionData": fetchTransactions,

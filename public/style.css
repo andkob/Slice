@@ -21,18 +21,34 @@ body {
 
 .header-container {
     display: flex;
-    justify-content: space-between; /* Align items to opposite ends */
-    align-items: center; /* Vertically center items */
+    justify-content: space-between; /* Align items to opposite ends | dont know if I need this????? */
+    align-items: stretch; /* Vertically center items */
+    gap: 20px;
 }
 
-.left-section {
-    flex: 1; /* Occupy remaining space */
-    text-align: left; /* Align content to the left */
+.welcome-container {
+    flex: 1; /* Ensures each container takes up equal space */
+}
+.accounts-container {
+    flex: 1;
+}
+.status-container {
+    flex: 1.5;
 }
 
-.right-section {
-    flex: 1; /* Occupy remaining space */
-    text-align: right; /* Align content to the right */
+.content-container {
+    display: flex;
+    align-items: stretch;
+    gap: 20px;
+}
+.links-container {
+    flex: 1;
+}
+.summary-container {
+    flex: 1;
+}
+.main-container {
+    flex: 1.5;
 }
 
 button {
@@ -82,7 +98,7 @@ button:disabled {
     color: #aaa;
 }
 
-/* New styles */
+/* New styles | What is this???? */
 .header, .content, .footer {
     display: flex;
     flex-direction: column;
@@ -102,6 +118,7 @@ button:disabled {
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     padding: 20px;
+    margin-bottom: 10px;
 }
 
 .card h2 {

@@ -7,45 +7,58 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container header-container">
-        <div class="left-section">
-            <h1>Welcome, <%= username %>!</h1>
+    <div class="header-container">
+        <div class="container welcome-container">
+            <h2>Welcome, <%= username %>!</h2>
             <button class="button logout-button" type="button" id="logout">Log out</button>
         </div>
-        <div class="right-section">
+        <div class="container status-container">
+            <h1>Slice</h1>
+            <div class="status">You are connected to <%= bankName %></div>
+        </div>
+        <div class="container accounts-container">
             <div class="card" id="account-cards">
                 <h3>Connected Accounts:</h3>
                 <!-- Account cards will be dynamically added here -->
             </div>
-            <div class="status">You are connected to <%= bankName %></div>
         </div>
     </div>
-
-    <div class="content container">
-        <div class="grid">
+    <div class="content-container">
+        <div class="container links-container">
+            <h2>Quick Links</h2>
+            <!-- Links to other stuff will go here -->
             <div class="card" id="balances">
-                <h2>Real Time Account Balances</h2>
+                <h3>Real Time Account Balances</h3>
                 <button class="button" type="button" id="realtimeBalance">Get Balances</button>
                 <div id="balanceOutput"></div>
             </div>
-            <div class="card" id="transactions">
-                <h2>Recent Transactions</h2>
-                <button class="button" type="button" id="transactionData">Get Transactions</button>
-                <div id="transactionOutput"></div>
-            </div>
             <div class="card" id="budget">
-                <h2>Budget Overview</h2>
+                <h3>Budget Overview</h3>
                 <button class="button" type="button" id="budgetInfo">Go to Budget View</button>
                 <div id="budgetOutput"></div>
             </div>
+            <div class="card" id="transactions">
+                <h3>Recent Transactions</h3>
+                <button class="button" type="button" id="transactionData">Get Transactions</button>
+                <div id="transactionOutput"></div>
+            </div>
             <div class="card" id="accountInfo">
-                <h2>Account Information</h2>
+                <h3>Account Information</h3>
                 <button class="button" type="button" id="accountNumbers">Show Account/Routing Numbers</button>
             </div>
             <div class="card" id="transactionsPage">
-                <h2>Transactions Overview</h2>
+                <h3>Transactions Overview</h3>
                 <button class="button" type="button" id="transactionsPageButton">Go to Transactions View</button>
             </div>
+        </div>
+        <div class="container main-container" id="main-container">
+            <h2>Recent Transactions</h2>
+            <!-- Main stuff will go here (just recent transactions for now)-->
+        </div>
+        <div class="container summary-container">
+            <h2>Spending Summary</h2>
+            <!-- spending summary will go here -->
+            <canvas id="spendingChart" width="300" height="300"></canvas>
         </div>
     </div>
 
@@ -57,7 +70,9 @@
     </div>
 
     <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module" src="/js/util.js"></script>
     <script type="module" src="/js/client.js"></script>
+    <script type="module" src="/js/spendingSummary.js"></script>
 </body>
 </html>
