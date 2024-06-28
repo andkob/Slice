@@ -57,8 +57,10 @@
         </div>
         <div class="container summary-container">
             <h2>Spending Summary</h2>
-            <!-- spending summary will go here -->
-            <canvas id="spendingChart" width="300" height="300"></canvas>
+            <h3>By Category</h3>
+            <canvas id="spendingPieChart" width="300" height="300"></canvas>
+            <h3>Last Seven Days</h3>
+            <canvas id="spendingLineChart" width="300" height="300"></canvas>
         </div>
     </div>
 
@@ -71,6 +73,7 @@
 
     <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <script type="module" src="/js/util.js"></script>
     <script type="module" src="/js/client.js"></script>
     <script type="module" src="/js/spendingSummary.js"></script>
