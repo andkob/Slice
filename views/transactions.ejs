@@ -13,20 +13,27 @@
             <button class="button back-button" type="button" id="backToDashboard">Go back</button>
         </div>
         <div class="right-section">
-            <div class="card" id="account-cards">
-                <h3>Connected Accounts:</h3>
-                <!-- Account cards will be dynamically added here -->
+            <div class="card" id="line-graph">
+                <canvas id="spendingLineChart" width="600" height="200"></canvas>
+                <button type="button" class="graph-control-button" id="oneWeek">7d</button>
+                <button type="button" class="graph-control-button" id="twoWeeks">2w</button>
+                <button type="button" class="graph-control-button" id="oneMonth">1mo</button>
+                <button type="button" class="graph-control-button" id="threeMonths">3mo</button>
+                <button type="button" class="graph-control-button" id="oneYear">1y</button>
             </div>
         </div>
     </div>
 
-    <div class="content container" id="transactions-container">
+    <div class="container transactions-container" id="transactions-container">
         <h1>Transactions</h1>
         <h2>Transaction Data</h2>
         <!-- Transactions will be dynamically added here -->
     </div>
     <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <script type="module" src="/js/util.js"></script>
     <script type="module" src="/js/client.js"></script>
+    <script type="module" src="/js/spendingSummary.js"></script>
 </body>
 </html>

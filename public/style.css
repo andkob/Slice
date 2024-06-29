@@ -2,12 +2,16 @@ body {
     font-family: Arial, sans-serif;
     background-color: #f0f0f0;
     text-align: center;
-    background-image: url('/images/slice-background.png'); /* Adjust the path to your image */
+    background-image: url('/images/background-image-6.jpg'); /* Adjust the path to your image */
     background-size: cover; /* Cover the entire page */
     background-position: center; /* Center the image */
     background-repeat: no-repeat; /* Do not repeat the image */
     background-attachment: fixed; /* Keep the background fixed on scroll */
     color: #fff; /* text color */
+}
+
+.main-text {
+    color: #ff7b00;
 }
 
 .container {
@@ -24,6 +28,16 @@ body {
     justify-content: space-between; /* Align items to opposite ends | dont know if I need this????? */
     align-items: stretch; /* Vertically center items */
     gap: 20px;
+}
+
+.left-section {
+    flex: 1; /* Occupy remaining space */
+    text-align: left; /* Align content to the left */
+}
+
+.right-section {
+    flex: 1; /* Occupy remaining space */
+    text-align: right; /* Align content to the right */
 }
 
 .welcome-container {
@@ -55,7 +69,7 @@ button {
     margin: 5px;
     padding: 10px 20px;
     font-size: 16px;
-    background-color: #0013bb;
+    background-color: #fd218bcb;
     color: #fff;
     border: none;
     border-radius: 4px;
@@ -63,7 +77,7 @@ button {
 }
 
 button:hover {
-    background-color: #02129a;
+    background-color: #ff7b00;;
 }
 
 .logout-button {
@@ -78,6 +92,14 @@ button:disabled {
     background-color: #ccc; /* Change to your desired grey color */
     cursor: not-allowed; /* Optional: Change cursor style */
     opacity: 0.6; /* Optional: Reduce opacity for visual indication */
+}
+
+.graph-control-button {
+    background-color: #2a2a2a;
+    font-size: 13px;
+    border: 1px solid;
+    border-color: #1d1d1d;
+    padding: 5px;
 }
 
 .styled-textbox {
@@ -125,6 +147,10 @@ button:disabled {
     margin-top: 0;
 }
 
+.slice-logo {
+    border-radius: 8px;
+}
+
 .status {
     margin: 10px;
     background-color: #2a2a2a;
@@ -156,6 +182,7 @@ button:disabled {
     width: 30px; /* Adjust size of icon as needed */
     height: 30px;
     margin-right: 10px;
+    border-radius: 8px;
 }
 
 .account-details {
@@ -171,22 +198,29 @@ button:disabled {
     margin: 10px 0;
 }
 
+.transactions-container {
+    display: flex;
+    flex-direction: column; /* Stack items vertically */
+    align-items: stretch;
+    gap: 20px;
+}
 /* Idk if you just wannna use the account-card instead cuz its the same */
 .transaction-card {
     margin-bottom: 20px;
     background-color: #2a2a2a;
     padding: 10px;
-    border-radius: 8px;
+    border-radius: 15px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border: 2px solid;
 }
 .transaction-info {
     display: flex;
     align-items: center;
 }
 .transaction-amount.positive {
-    color: green;
+    color: inherit;
 }
 
 .transaction-amount.negative {
-    color: red;
+    color: inherit;
 }

@@ -1,5 +1,5 @@
-import { callMyServer, showOutput } from "./util.js";
-import { showSpendingSummary } from "./spendingSummary.js";
+import { callMyServer, showOutput, mergeSortByDate } from "./util.js";
+import { showSpendingLineGraph, showSpendingPieChart, updateGraph } from "./spendingSummary.js";
 
 let linkTokenData;
 let bankName;
@@ -124,7 +124,7 @@ export const checkConnectedStatus = async function () {
     const connectedData = await callMyServer("/server/get_user_info");
     console.log(connectedData.user_status);
     if (connectedData.user_status === "connected") {
-        showOutput('Plaid is connected to your financial institution');
+        showOutput('Slice is connected to your financial institution');
         return true;
     }
     return false;
@@ -185,7 +185,8 @@ async function switchToDashboard() {
         // show transactions in main container | data is used for summary so we must await completion
         const data = await showTransactions("#main-container", 10);
         // show spending summary
-        showSpendingSummary(data);
+        showSpendingPieChart(data);
+        showSpendingLineGraph(data, "spendingLineChart");
     } catch (error) {
         console.error(`Error fetching dashboard:`, error);
     }
@@ -204,11 +205,11 @@ async function switchToTransactions() {
         const html = await response.text();
         replaceBodyContent(html);
 
-        // show connected accounts
-        showConnectedAccounts();
-
         // Load transactions here
-        showTransactions("#transactions-container");
+        const data = await showTransactions("#transactions-container");
+        
+        // Show line graph
+        showSpendingLineGraph(data, "spendingLineChart", 30);
     } catch (error) {
         console.error(`Error fetching transactions page:`, error);
     }
@@ -415,11 +416,14 @@ const showTransactions = async function (containerID, numTransactions = 100) {
             accountMap.set(accounts[i].account_id, accounts[i].name);
         }
 
+        // Sort transactions by date (most recent first)
+        const sortedTransactions = mergeSortByDate(transactions);
+
         const transactionsContainer = document.querySelector(containerID);
 
         for (let i = 0; i < Math.min(transactions.length, numTransactions); i++) {
             let transactionDataString = "";
-            const transaction = transactions[i];
+            const transaction = sortedTransactions[i];
             const {
                 account_id,
                 merchant_name,
@@ -446,6 +450,8 @@ const showTransactions = async function (containerID, numTransactions = 100) {
 
             // Determine the class for the amount based on its value
             const amountClass = amount < 0 ? 'positive' : 'negative';
+            const borderColor = amount < 0 ? 'rgb(214, 0, 0)' : 'rgb(0, 184, 0)';
+            card.style.borderColor = borderColor;
 
             card.innerHTML = `
             <div class="transaction-info">
@@ -496,7 +502,14 @@ function initializeEventListeners() {
         "#accountNumbers": getAccountNumbers,
         "#transactionData": fetchTransactions,
         "#realtimeBalance": fetchRealtimeBalances,
-        "#logout": logout
+        "#logout": logout,
+        "#oneWeek": () => {
+            console.log("seven Days clicked")
+            updateGraph(7)},
+        "#twoWeeks": () => updateGraph(14),
+        "#oneMonth": () => updateGraph(30),
+        "#threeMonths": () => updateGraph(90),
+        "#oneYear": () => updateGraph(365)
     };
 
     // Loop through selectors and add event listeners

@@ -1,14 +1,12 @@
 -- Commit Notes --
 
 I think I'm going to hang on to this current layout for now. Still temporary, but it will no longer impede development.
-Graphs are fine as they are rn. I would like to implement buttons to change the dates displayed on the line graph, but I'll probably just
-put this in the larger spending summary page when I make one.
 
-Next order of business idk. Visuals are still sloppy so i'd like to change the header and the quick links. I'll leave the output box only
+Visuals are much much sexier but still sloppy so i'd like to change the header and the quick links. I'll leave the output box rn only
 for debugging bc it comes in handy sometimes. I think the budgeting page should be next because that's honestly part of the reason I wanted to
 build this app in the first palce.
 
-
+In the new buttons to control the line graph make the selected one stay a color.
 
 -- Stuff --
 
