@@ -154,7 +154,7 @@ export const checkConnectedStatus = async function () {
  * specific Plaid product.
  */
 async function exchangeToken(token) {
-    // just a note I pass the bank name to the server during this proccess just cuz its the most convenient
+    // just a note we pass the bank name to the server during this proccess just cuz its the most convenient
     await callMyServer("/server/swap_public_token", true, {
         public_token: token,
         connected_bank: bankName,
@@ -428,50 +428,6 @@ const showTransactions = async function (containerID, numTransactions = 100) {
         });
 
         return transactionData;
-
-        // for (let i = 0; i < Math.min(transactions.length, numTransactions); i++) {
-        //     let transactionDataString = "";
-        //     const transaction = sortedTransactions[i];
-        //     const {
-        //         account_id,
-        //         merchant_name,
-        //         amount,
-        //         iso_currency_code,
-        //         date,
-        //         category,
-        //     } = transaction;
-
-        //     const formattedCategory = category ? category.join(', ') : 'N/A';
-        //     let accountName = accountMap.get(account_id);
-
-        //     transactionDataString = `
-        //         Transaction ${i + 1}:
-        //         - ${accountName}
-        //         - ${merchant_name || 'N/A'}
-        //         - Amount: $${amount} ${iso_currency_code}
-        //         - Date: ${date}
-        //         - Category: ${formattedCategory}
-        //         `;
-
-        //     const card = document.createElement('div');
-        //     card.classList.add('transaction-card');
-
-        //     // Determine the class for the amount based on its value
-        //     const amountClass = amount < 0 ? 'positive' : 'negative';
-        //     const borderColor = amount < 0 ? 'rgb(214, 0, 0)' : 'rgb(0, 184, 0)';
-        //     card.style.borderColor = borderColor;
-
-        //     card.innerHTML = `
-        //     <div class="transaction-info">
-        //         <div class="account-details">
-        //             <p class="transaction-amount ${amountClass}">${transactionDataString}</p>
-        //         </div>
-        //     </div>
-        //     `;
-        //     transactionsContainer.appendChild(card);
-        // }
-
-        // return transactionData;
     } catch (error) {
         console.error('Error fetching transaction data: ', error);
     }
