@@ -1,4 +1,4 @@
-import { callMyServer, showOutput, mergeSortByDate } from "./util.js";
+import { callMyServer, showOutput, mergeSortByDate, createTransactionCard } from "./util.js";
 import { showSpendingLineGraph, showSpendingPieChart, updateGraph } from "./spendingSummary.js";
 
 let linkTokenData;
@@ -412,58 +412,66 @@ const showTransactions = async function (containerID, numTransactions = 100) {
 
         // Link account IDs to their names
         const accountMap = new Map();
-        for (let i = 0; i < accounts.length; i++) {
-            accountMap.set(accounts[i].account_id, accounts[i].name);
+        for (const account of accounts) {
+            accountMap.set(account.account_id, account.name);
         }
 
         // Sort transactions by date (most recent first)
         const sortedTransactions = mergeSortByDate(transactions);
-
         const transactionsContainer = document.querySelector(containerID);
 
-        for (let i = 0; i < Math.min(transactions.length, numTransactions); i++) {
-            let transactionDataString = "";
-            const transaction = sortedTransactions[i];
-            const {
-                account_id,
-                merchant_name,
-                amount,
-                iso_currency_code,
-                date,
-                category,
-            } = transaction;
+        // merge functionality here
 
-            const formattedCategory = category ? category.join(', ') : 'N/A';
-            let accountName = accountMap.get(account_id);
-
-            transactionDataString = `
-                Transaction ${i + 1}:
-                - ${accountName}
-                - ${merchant_name || 'N/A'}
-                - Amount: $${amount} ${iso_currency_code}
-                - Date: ${date}
-                - Category: ${formattedCategory}
-                `;
-
-            const card = document.createElement('div');
-            card.classList.add('transaction-card');
-
-            // Determine the class for the amount based on its value
-            const amountClass = amount < 0 ? 'positive' : 'negative';
-            const borderColor = amount < 0 ? 'rgb(214, 0, 0)' : 'rgb(0, 184, 0)';
-            card.style.borderColor = borderColor;
-
-            card.innerHTML = `
-            <div class="transaction-info">
-                <div class="account-details">
-                    <p class="transaction-amount ${amountClass}">${transactionDataString}</p>
-                </div>
-            </div>
-            `;
+        sortedTransactions.slice(0, numTransactions).forEach((transaction, index) => {
+            const card = createTransactionCard(transaction, index, accountMap);
             transactionsContainer.appendChild(card);
-        }
+        });
 
         return transactionData;
+
+        // for (let i = 0; i < Math.min(transactions.length, numTransactions); i++) {
+        //     let transactionDataString = "";
+        //     const transaction = sortedTransactions[i];
+        //     const {
+        //         account_id,
+        //         merchant_name,
+        //         amount,
+        //         iso_currency_code,
+        //         date,
+        //         category,
+        //     } = transaction;
+
+        //     const formattedCategory = category ? category.join(', ') : 'N/A';
+        //     let accountName = accountMap.get(account_id);
+
+        //     transactionDataString = `
+        //         Transaction ${i + 1}:
+        //         - ${accountName}
+        //         - ${merchant_name || 'N/A'}
+        //         - Amount: $${amount} ${iso_currency_code}
+        //         - Date: ${date}
+        //         - Category: ${formattedCategory}
+        //         `;
+
+        //     const card = document.createElement('div');
+        //     card.classList.add('transaction-card');
+
+        //     // Determine the class for the amount based on its value
+        //     const amountClass = amount < 0 ? 'positive' : 'negative';
+        //     const borderColor = amount < 0 ? 'rgb(214, 0, 0)' : 'rgb(0, 184, 0)';
+        //     card.style.borderColor = borderColor;
+
+        //     card.innerHTML = `
+        //     <div class="transaction-info">
+        //         <div class="account-details">
+        //             <p class="transaction-amount ${amountClass}">${transactionDataString}</p>
+        //         </div>
+        //     </div>
+        //     `;
+        //     transactionsContainer.appendChild(card);
+        // }
+
+        // return transactionData;
     } catch (error) {
         console.error('Error fetching transaction data: ', error);
     }

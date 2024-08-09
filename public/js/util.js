@@ -76,6 +76,44 @@ function mergeByDate(left, right) {
 
   // Concatenate remaining elements
   return result.concat(left.slice(leftIndex), right.slice(rightIndex));
-}
+} // TODO use radix sort instead cuz its cool
 
-// TODO use radix sort instead cuz its cool
+export const createTransactionCard = (transaction, index, accountMap) => {
+  const {
+    account_id,
+    merchant_name,
+    amount,
+    iso_currency_code,
+    date,
+    category,
+  } = transaction;
+
+  const formattedCategory = category ? category.join(', ') : 'N/A';
+  const accountName = accountMap.get(account_id);
+
+  // Determine the class for the amount based on its value
+  const amountClass = amount < 0 ? 'positive' : 'negative';
+  const borderColor = amount < 0 ? 'rgb(214, 0, 0)' : 'rgb(0, 184, 0)';
+
+  // Create the card
+  const card = document.createElement('div');
+  card.classList.add('transaction-card');
+  card.style.borderColor = borderColor;
+
+  card.innerHTML = `
+    <div class="transaction-info">
+        <div class="account-details">
+            <p class="transaction-amount ${amountClass}">
+                Transaction ${index + 1}:
+                - ${accountName}
+                - ${merchant_name || 'N/A'}
+                - Amount: $${amount} ${iso_currency_code}
+                - Date: ${date}
+                - Category: ${formattedCategory}
+            </p>
+        </div>
+    </div>
+  `;
+
+  return card;
+}
